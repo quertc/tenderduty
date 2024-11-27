@@ -32,6 +32,7 @@ const (
 	StatusPrecommit
 	StatusSigned
 	StatusProposed
+	StatusProposedEmpty
 )
 
 // StatusUpdate is passed over a channel from the websocket client indicating the current state, it is immediate in the
@@ -41,6 +42,7 @@ type StatusUpdate struct {
 	Height int64
 	Status StatusType
 	Final  bool
+	Empty  bool
 }
 
 // WsReply is a trimmed down version of the JSON sent from a tendermint websocket subscription.
@@ -150,6 +152,11 @@ func (cc *ChainConfig) WsRun() {
 						cc.statTotalProps += 1
 						cc.statTotalSigns += 1
 						cc.statConsecutiveMiss = 0
+					case StatusProposedEmpty:
+						cc.statTotalPropsEmpty += 1
+						cc.statTotalProps += 1
+						cc.statTotalSigns += 1
+						cc.statConsecutiveMiss = 0 
 					}
 					signState = -1
 					healthyNodes := 0
@@ -196,6 +203,7 @@ func (cc *ChainConfig) WsRun() {
 						td.statsChan <- cc.mkUpdate(metricPrevote, cc.statPrevoteMiss, "")
 						td.statsChan <- cc.mkUpdate(metricPrecommit, cc.statPrecommitMiss, "")
 						td.statsChan <- cc.mkUpdate(metricConsecutive, cc.statConsecutiveMiss, "")
+						td.statsChan <- cc.mkUpdate(metricEmptyBlocks, cc.statTotalPropsEmpty, "")
 						td.statsChan <- cc.mkUpdate(metricUnealthyNodes, float64(len(cc.Nodes)-healthyNodes), "")
 					}
 				}
@@ -286,6 +294,9 @@ type rawBlock struct {
 		LastCommit struct {
 			Signatures []signature `json:"signatures"`
 		} `json:"last_commit"`
+		Data struct {
+			Txs []json.RawMessage `json:"txs"`
+		} `json:"data"`
 	} `json:"block"`
 }
 
@@ -327,9 +338,14 @@ func handleBlocks(ctx context.Context, blocks chan *WsReply, results chan Status
 				Height: b.Block.Header.Height.val(),
 				Status: Statusmissed,
 				Final:  true,
+				Empty:  len(b.Block.Data.Txs) == 0,
 			}
 			if b.Block.Header.ProposerAddress == address {
-				upd.Status = StatusProposed
+				if upd.Empty {
+					upd.Status = StatusProposedEmpty
+				} else {
+					upd.Status = StatusProposed
+				}
 			} else if b.find(address) {
 				upd.Status = StatusSigned
 			}

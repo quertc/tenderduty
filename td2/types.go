@@ -103,6 +103,7 @@ type ChainConfig struct {
 	statPrevoteMiss     float64
 	statPrecommitMiss   float64
 	statConsecutiveMiss float64
+	statTotalPropsEmpty float64
 
 	// ChainId is used to ensure any endpoints contacted claim to be on the correct chain. This is a weak verification,
 	// no light client validation is performed, so caution is advised when using public endpoints.
