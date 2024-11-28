@@ -601,12 +601,21 @@ func (cc *ChainConfig) watch() {
 
 		// window percentage empty block alarms
 		var emptyBlocksPercent float64
+		l(fmt.Sprintf("Debug empty blocks for %s: %d props, %d empty", cc.valInfo.Moniker, cc.statTotalProps, cc.statTotalPropsEmpty))
 		if cc.statTotalProps > 0 {
 			emptyBlocksPercent = 100 * float64(cc.statTotalPropsEmpty) / float64(cc.statTotalProps)
+			l(fmt.Sprintf("Debug empty blocks for %s: %.2f%% empty (%d of %d blocks)", 
+				cc.valInfo.Moniker,
+				emptyBlocksPercent,
+				cc.statTotalPropsEmpty,
+				cc.statTotalProps))
 		}
 
 		if cc.Alerts.EmptyPercentageAlerts && !emptyPctAlarm && emptyBlocksPercent > float64(cc.Alerts.EmptyWindow) {
-			// alert on empty block percentage!
+			l(fmt.Sprintf("Triggering empty blocks alert for %s: %.2f%% > %d%%", 
+				cc.valInfo.Moniker,
+				emptyBlocksPercent,
+				cc.Alerts.EmptyWindow))
 			emptyPctAlarm = true
 			id := cc.valInfo.Valcons + "empty_percent"
 			td.alert(
