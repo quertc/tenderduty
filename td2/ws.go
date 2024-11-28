@@ -152,11 +152,13 @@ func (cc *ChainConfig) WsRun() {
 						cc.statTotalProps += 1
 						cc.statTotalSigns += 1
 						cc.statConsecutiveMiss = 0
+						cc.statConsecutiveEmpty = 0
 					case StatusProposedEmpty:
 						cc.statTotalPropsEmpty += 1
 						cc.statTotalProps += 1
 						cc.statTotalSigns += 1
-						cc.statConsecutiveMiss = 0 
+						cc.statConsecutiveMiss = 0
+						cc.statConsecutiveEmpty += 1
 					}
 					signState = -1
 					healthyNodes := 0
@@ -203,7 +205,8 @@ func (cc *ChainConfig) WsRun() {
 						td.statsChan <- cc.mkUpdate(metricPrevote, cc.statPrevoteMiss, "")
 						td.statsChan <- cc.mkUpdate(metricPrecommit, cc.statPrecommitMiss, "")
 						td.statsChan <- cc.mkUpdate(metricConsecutive, cc.statConsecutiveMiss, "")
-						td.statsChan <- cc.mkUpdate(metricEmptyBlocks, cc.statTotalPropsEmpty, "")
+						td.statsChan <- cc.mkUpdate(metricEmptyBlocks, float64(cc.statTotalPropsEmpty), "")
+						td.statsChan <- cc.mkUpdate(metricConsecutiveEmpty, float64(cc.statConsecutiveEmpty), "")
 						td.statsChan <- cc.mkUpdate(metricUnealthyNodes, float64(len(cc.Nodes)-healthyNodes), "")
 					}
 				}

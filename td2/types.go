@@ -97,13 +97,14 @@ type ChainConfig struct {
 	lastBlockNum       int64
 	activeAlerts       int
 
-	statTotalSigns      float64
-	statTotalProps      float64
-	statTotalMiss       float64
-	statPrevoteMiss     float64
-	statPrecommitMiss   float64
-	statConsecutiveMiss float64
-	statTotalPropsEmpty float64
+	statTotalSigns       float64
+	statTotalProps       float64
+	statTotalMiss        float64
+	statPrevoteMiss      float64
+	statPrecommitMiss    float64
+	statConsecutiveMiss  float64
+	statTotalPropsEmpty  float64
+	statConsecutiveEmpty float64
 
 	// ChainId is used to ensure any endpoints contacted claim to be on the correct chain. This is a weak verification,
 	// no light client validation is performed, so caution is advised when using public endpoints.
@@ -158,6 +159,20 @@ type AlertConfig struct {
 	PercentagePriority string `yaml:"percentage_priority"`
 	// PercentageAlerts is whether to alert on percentage based misses
 	PercentageAlerts bool `yaml:"percentage_enabled"`
+
+	// How many consecutive empty blocks are acceptable before alerting
+	ConsecutiveEmpty int `yaml:"consecutive_empty"`
+	// Tag for pagerduty to set the alert priority for empty blocks
+	ConsecutiveEmptyPriority string `yaml:"consecutive_empty_priority"`
+	// Whether to alert on consecutive empty blocks
+	ConsecutiveEmptyAlerts bool `yaml:"consecutive_empty_enabled"`
+
+	// Window is how many blocks empty as a percentage of the window to trigger an alert
+	EmptyWindow int `yaml:"empty_percentage"`
+	// EmptyPercentagePriority is a tag for pagerduty to route on priority
+	EmptyPercentagePriority string `yaml:"empty_percentage_priority"`
+	// EmptyPercentageAlerts is whether to alert on percentage based empty blocks
+	EmptyPercentageAlerts bool `yaml:"empty_percentage_enabled"`
 
 	// AlertIfInactive decides if tenderduty send an alert if the validator is not in the active set?
 	AlertIfInactive bool `yaml:"alert_if_inactive"`
@@ -320,7 +335,7 @@ func validateConfig(c *Config) (fatal bool, problems []string) {
 			fallthrough
 		case v.Alerts.Telegram.Enabled && !c.Telegram.Enabled:
 			problems = append(problems, fmt.Sprintf("warn: %20s is configured for telegram alerts, but it is not enabled", k))
-		case !v.Alerts.ConsecutiveAlerts && !v.Alerts.PercentageAlerts && !v.Alerts.AlertIfInactive && !v.Alerts.AlertIfNoServers:
+		case !v.Alerts.ConsecutiveAlerts && !v.Alerts.PercentageAlerts && !v.Alerts.AlertIfInactive && !v.Alerts.AlertIfNoServers && !v.Alerts.ConsecutiveEmptyAlerts && !v.Alerts.EmptyPercentageAlerts:
 			problems = append(problems, fmt.Sprintf("warn: %20s has no alert types configured", k))
 			fallthrough
 		case !v.Alerts.Pagerduty.Enabled && !v.Alerts.Discord.Enabled && !v.Alerts.Telegram.Enabled && !v.Alerts.Slack.Enabled:

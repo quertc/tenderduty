@@ -27,6 +27,7 @@ const (
 	metricPrecommit
 	metricConsecutive
 	metricEmptyBlocks
+	metricConsecutiveEmpty
 	metricWindowMissed
 	metricWindowSize
 	metricLastBlockSeconds
@@ -97,6 +98,10 @@ func prometheusExporter(ctx context.Context, updates chan *promUpdate) {
 		Name: "tenderduty_empty_proposed_blocks",
 		Help: "count of empty blocks proposed (blocks with zero transactions) since tenderduty was started",
 	}, chainLabels)
+	consecutiveEmpty := promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "tenderduty_consecutive_empty_blocks",
+		Help: "the current count of consecutively proposed empty blocks",
+	}, chainLabels)
 	windowSize := promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "tenderduty_missed_block_window",
 		Help: "the missed block aka slashing window",
@@ -142,6 +147,7 @@ func prometheusExporter(ctx context.Context, updates chan *promUpdate) {
 		metricPrecommit:                missedPrecommit,
 		metricConsecutive:              missedConsecutive,
 		metricEmptyBlocks:              emptyBlocks,
+		metricConsecutiveEmpty:         consecutiveEmpty,
 		metricWindowMissed:             missedWindow,
 		metricWindowSize:               windowSize,
 		metricLastBlockSeconds:         lastBlockSec,
