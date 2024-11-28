@@ -95,6 +95,21 @@ chains:
       # Percentage Missed alert Pagerduty Severity
       percentage_priority: warning
 
+      # Empty blocks notification configuration
+      consecutive_empty_enabled: yes
+      # How many consecutive empty blocks should trigger a notification?
+      consecutive_empty: 3
+      # Consecutive Empty alert Pagerduty Severity
+      consecutive_empty_priority: critical
+
+      # For some Cosmos EVM chains, empty consensus blocks may decrease execution uptime
+      # since they aren't included in EVM state. Should an alert be sent if empty blocks are detected?
+      empty_blocks_percentage_enabled: yes
+      # What percentage should trigger the alert
+      empty_blocks_percentage: 2
+      # Percentage Empty alert Pagerduty Severity
+      empty_blocks_percentage_priority: warning
+
       # Should an alert be sent if the validator is not in the active set ie, jailed,
       # tombstoned, unbonding?
       alert_if_inactive: yes

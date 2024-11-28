@@ -167,7 +167,7 @@ type AlertConfig struct {
 	// Whether to alert on consecutive empty blocks
 	ConsecutiveEmptyAlerts bool `yaml:"consecutive_empty_enabled"`
 
-	// Window is how many blocks empty as a percentage of the window to trigger an alert
+	// EmptyWindow is how many blocks empty as a percentage of proposed blocks since tenderduty was started to trigger an alert
 	EmptyWindow int `yaml:"empty_percentage"`
 	// EmptyPercentagePriority is a tag for pagerduty to route on priority
 	EmptyPercentagePriority string `yaml:"empty_percentage_priority"`
