@@ -104,11 +104,11 @@ chains:
 
       # For some Cosmos EVM chains, empty consensus blocks may decrease execution uptime
       # since they aren't included in EVM state. Should an alert be sent if empty blocks are detected?
-      empty_blocks_percentage_enabled: yes
+      empty_percentage_enabled: yes
       # What percentage should trigger the alert
-      empty_blocks_percentage: 2
+      empty_percentage: 2
       # Percentage Empty alert Pagerduty Severity
-      empty_blocks_percentage_priority: warning
+      empty_percentage_priority: warning
 
       # Should an alert be sent if the validator is not in the active set ie, jailed,
       # tombstoned, unbonding?
