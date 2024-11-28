@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/url"
 	"strconv"
 	"strings"
@@ -221,7 +222,7 @@ func (cc *ChainConfig) WsRun() {
 
 	blockChan := make(chan *WsReply)
 	go func() {
-		e := handleBlocks(ctx, blockChan, resultChan, strings.ToUpper(hex.EncodeToString(cc.valInfo.Conspub)))
+		e := handleBlocks(ctx, cc, blockChan, resultChan, strings.ToUpper(hex.EncodeToString(cc.valInfo.Conspub)))
 		if e != nil {
 			l("🛑", cc.ChainId, e)
 			cancel()
@@ -318,10 +319,13 @@ func (rb rawBlock) find(val string) bool {
 
 // handleBlocks consumes the channel for new blocks and when it sees one sends a status update. It's also
 // responsible for stalled chain detection and will shutdown the client if there are no blocks for a minute.
-func handleBlocks(ctx context.Context, blocks chan *WsReply, results chan StatusUpdate, address string) error {
+func handleBlocks(ctx context.Context, cc *ChainConfig, blocks chan *WsReply, results chan StatusUpdate, address string) error {
 	live := time.NewTicker(time.Minute)
 	defer live.Stop()
 	lastBlock := time.Now()
+	
+	emptyBlocksCounter := 0
+	
 	for {
 		select {
 		case <-live.C:
@@ -337,17 +341,39 @@ func handleBlocks(ctx context.Context, blocks chan *WsReply, results chan Status
 				l("could not decode block", err)
 				continue
 			}
+			
 			upd := StatusUpdate{
 				Height: b.Block.Header.Height.val(),
 				Status: Statusmissed,
 				Final:  true,
 				Empty:  len(b.Block.Data.Txs) == 0,
 			}
+
 			if b.Block.Header.ProposerAddress == address {
+				if cc.Testing.Enabled {
+					if cc.Testing.ForceConsecutiveEmpty > 0 && 
+						emptyBlocksCounter < cc.Testing.ForceConsecutiveEmpty {
+						upd.Empty = true
+						emptyBlocksCounter++
+						l(fmt.Sprintf("🔧 Testing: Forcing empty block %d/%d", 
+							emptyBlocksCounter, cc.Testing.ForceConsecutiveEmpty))
+					} else if cc.Testing.EmptyBlocksRate > 0 {
+						upd.Empty = rand.Intn(100) < cc.Testing.EmptyBlocksRate
+						if upd.Empty {
+							l(fmt.Sprintf("🔧 Testing: Random empty block (rate: %d%%)", 
+								cc.Testing.EmptyBlocksRate))
+						}
+					}
+				}
+
+				l(fmt.Sprintf("🔍 Validator proposed block %d with %d transactions (empty=%v)", 
+						upd.Height, len(b.Block.Data.Txs), upd.Empty))
+				
 				if upd.Empty {
 					upd.Status = StatusProposedEmpty
 				} else {
 					upd.Status = StatusProposed
+					emptyBlocksCounter = 0
 				}
 			} else if b.find(address) {
 				upd.Status = StatusSigned

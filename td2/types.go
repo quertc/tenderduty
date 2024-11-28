@@ -125,6 +125,8 @@ type ChainConfig struct {
 	PublicFallback bool `yaml:"public_fallback"`
 	// Nodes defines what RPC servers to connect to.
 	Nodes []*NodeConfig `yaml:"nodes"`
+	// Testing configuration
+	Testing TestingConfig `yaml:"testing"`
 }
 
 // mkUpdate returns the info needed by prometheus for a gauge.
@@ -246,6 +248,13 @@ type HealthcheckConfig struct {
 	Enabled  bool          `yaml:"enabled"`
 	PingURL  string        `yaml:"ping_url"`
 	PingRate time.Duration `yaml:"ping_rate"`
+}
+
+// TestingConfig holds the configuration for testing empty blocks
+type TestingConfig struct {
+	Enabled bool `yaml:"enabled"`
+	EmptyBlocksRate int `yaml:"empty_blocks_rate"` // Percentage of empty blocks (0-100)
+	ForceConsecutiveEmpty int `yaml:"force_consecutive_empty"` // Force N consecutive empty blocks
 }
 
 // validateConfig is a non-exhaustive check for common problems with the configuration. Needs love.
