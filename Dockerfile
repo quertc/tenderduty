@@ -12,8 +12,7 @@ RUN upx tenderduty && upx -t tenderduty
 FROM debian:11 AS ssl
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y upgrade && apt-get install -y ca-certificates && \
-    addgroup --gid 26657 --system tenderduty && adduser -uid 26657 --ingroup tenderduty --system --home /var/lib/tenderduty tenderduty && \
-    [ -d /lib64 ] || ln -s /lib /lib64
+    addgroup --gid 26657 --system tenderduty && adduser -uid 26657 --ingroup tenderduty --system --home /var/lib/tenderduty tenderduty
 
 # 3rd and final stage, copy the minimum parts into a scratch container, is a smaller and more secure build. This pulls
 # in SSL libraries and CAs so Go can connect to TLS servers.
